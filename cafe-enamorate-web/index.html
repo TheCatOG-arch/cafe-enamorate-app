@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="es" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Café Enamórate | Pichanaki - Specialty Coffee & Restobar Web App</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Syne -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Syne"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              pink: '#e11d48',
+              amber: '#f59e0b',
+              dark: '#09090b',
+              card: '#121215',
+              cardHover: '#18181c'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #09090b;
+      color: #f4f4f5;
+      overflow-x: hidden;
+    }
+    .hero-glow {
+      background: radial-gradient(circle at 75% 50%, rgba(225, 29, 72, 0.25) 0%, rgba(245, 158, 11, 0.14) 35%, rgba(18, 18, 21, 0) 70%);
+    }
+    .card-glow:hover {
+      box-shadow: 0 14px 35px -10px rgba(225, 29, 72, 0.28);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-slide-up {
+      animation: slideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-brand-pink selection:text-white pb-28">
+
+  <!-- CONTENEDOR DE NOTIFICACIONES TOAST -->
+  <div id="toastContainer" class="fixed top-24 right-5 z-[70] flex flex-col gap-2.5 pointer-events-none"></div>
+
+  <!-- ================= BARRA SUPERIOR PROMOCIONAL ================= -->
+  <div class="bg-gradient-to-r from-brand-pink via-rose-600 to-amber-500 text-white text-[11px] sm:text-xs font-bold py-2 px-4 text-center flex items-center justify-center gap-2">
+    <span class="bg-black/30 px-2 py-0.5 rounded-full uppercase tracking-wider text-[10px]">Promo Web</span>
+    <span>Usa el código <strong>ENAMORATE10</strong> en tu carrito y obtén 10% OFF en tu primer pedido online en Pichanaki</span>
+  </div>
+
+  <!-- ================= HEADER / NAVBAR SUPERIOR ================= -->
+  <header class="sticky top-0 z-40 backdrop-blur-xl bg-[#09090b]/85 border-b border-white/[0.08]">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-3">
+      
+      <!-- Logo CAFÉ || ENAMÓRATE -->
+      <a href="#" class="flex items-center gap-2 text-lg sm:text-xl font-extrabold tracking-wider shrink-0">
+        <span class="font-display text-white">CAFÉ</span>
+        <span class="bg-gradient-to-r from-brand-pink to-orange-500 text-white px-2 py-0.5 rounded-md text-sm flex items-center gap-1 shadow-lg shadow-brand-pink/30">
+          <i data-lucide="heart" class="w-3.5 h-3.5 fill-current"></i>
+        </span>
+        <span class="font-display text-white">ENAMÓRATE</span>
+      </a>
+
+      <!-- Buscador central tipo píldora luminosa con atajo Ctrl+K -->
+      <div class="hidden md:flex items-center flex-1 max-w-md mx-4 bg-[#f4f4f5] text-zinc-900 rounded-full px-4 py-2 shadow-inner focus-within:ring-2 focus-within:ring-brand-pink">
+        <i data-lucide="search" class="w-4 h-4 text-zinc-500 mr-2.5 shrink-0"></i>
+        <input 
+          id="searchInput" 
+          type="text" 
+          placeholder="Buscar frappuccinos, waffles, cafés, alitas..." 
+          class="bg-transparent w-full text-sm font-medium placeholder-zinc-500 focus:outline-none"
+        />
+        <kbd class="hidden lg:inline-block text-[10px] font-bold bg-zinc-200 text-zinc-600 px-2 py-0.5 rounded border border-zinc-300 mr-1.5">Ctrl K</kbd>
+        <span class="text-[11px] font-bold bg-zinc-900 text-white px-2.5 py-1 rounded-full shrink-0">Pichanaki</span>
+      </div>
+
+      <!-- Acciones derechas -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Estado Abierto en Vivo -->
+        <div class="hidden xl:flex items-center gap-2 text-xs font-semibold text-zinc-300 bg-white/[0.04] px-3.5 py-2 rounded-full border border-white/[0.08]">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Abierto • Pichanaki</span>
+        </div>
+
+        <!-- Botón Reservar Mesa VIP -->
+        <button onclick="toggleReservationModal()" class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-black hover:bg-amber-400 bg-amber-400/10 px-3.5 py-2 rounded-full border border-amber-400/30 transition">
+          <i data-lucide="calendar-heart" class="w-3.5 h-3.5"></i>
+          <span>Reservar Mesa</span>
+        </button>
+
+        <!-- Botón Favoritos -->
+        <button onclick="filterFavorites()" class="relative w-10 h-10 rounded-full bg-white/[0.05] hover:bg-white/[0.12] border border-white/[0.08] flex items-center justify-center text-zinc-200 transition" title="Ver mis favoritos">
+          <i data-lucide="heart" class="w-4 h-4 text-brand-pink"></i>
+          <span id="favCountBadge" class="absolute -top-1 -right-1 bg-white text-black text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+        </button>
+
+        <!-- Botón Carrito -->
+        <button onclick="toggleCart()" class="relative flex items-center gap-2 bg-brand-pink hover:bg-rose-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-full transition shadow-lg shadow-brand-pink/25">
+          <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+          <span id="headerCartTotal">S/ 0.00</span>
+          <span id="headerCartCount" class="bg-white text-brand-pink text-[11px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Buscador Móvil -->
+    <div class="md:hidden px-4 pb-3">
+      <div class="flex items-center bg-[#f4f4f5] text-zinc-900 rounded-full px-4 py-2">
+        <i data-lucide="search" class="w-4 h-4 text-zinc-500 mr-2 shrink-0"></i>
+        <input 
+          id="mobileSearchInput" 
+          type="text" 
+          placeholder="Buscar en la carta de Café Enamórate..." 
+          class="bg-transparent w-full text-xs font-medium placeholder-zinc-500 focus:outline-none"
+        />
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= CONTENEDOR PRINCIPAL ================= -->
+  <main class="max-w-[1400px] mx-auto px-4 sm:px-6 pt-6 space-y-12">
+
+    <!-- 1. HERO SLIDER CON INDICADORES Y CONTADOR 01 / 03 -->
+    <section class="relative rounded-[28px] bg-[#121215] border border-white/[0.08] overflow-hidden hero-glow min-h-[430px] sm:min-h-[480px] flex items-center">
+      
+      <button onclick="prevSlide()" class="absolute left-3 sm:left-5 z-20 w-10 h-10 rounded-full bg-black/60 hover:bg-white hover:text-black border border-white/10 flex items-center justify-center text-white transition backdrop-blur-md">
+        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+      </button>
+
+      <div id="heroSlideContent" class="w-full grid grid-cols-1 lg:grid-cols-12 items-center px-8 sm:px-16 py-10 gap-8 transition-all duration-500">
+        <!-- Renderizado por app.js -->
+      </div>
+
+      <button onclick="nextSlide()" class="absolute right-3 sm:right-5 z-20 w-10 h-10 rounded-full bg-black/60 hover:bg-white hover:text-black border border-white/10 flex items-center justify-center text-white transition backdrop-blur-md">
+        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+      </button>
+
+      <!-- Puntitos indicadores inferiores del Slider -->
+      <div id="heroDots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20"></div>
+    </section>
+
+    <!-- 2. BARRA DE 4 BENEFICIOS -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div class="bg-[#121215] border border-white/[0.07] rounded-2xl p-4 flex items-center justify-center gap-3 hover:border-white/20 transition">
+        <i data-lucide="coffee" class="w-5 h-5 text-amber-400 shrink-0"></i>
+        <span class="text-xs sm:text-sm font-bold tracking-wide uppercase text-zinc-200">Café 100% Selva Central</span>
+      </div>
+      <div class="bg-[#121215] border border-white/[0.07] rounded-2xl p-4 flex items-center justify-center gap-3 hover:border-white/20 transition">
+        <i data-lucide="sliders-horizontal" class="w-5 h-5 text-brand-pink shrink-0"></i>
+        <span class="text-xs sm:text-sm font-bold tracking-wide uppercase text-zinc-200">Personaliza tus Toppings</span>
+      </div>
+      <div class="bg-[#121215] border border-white/[0.07] rounded-2xl p-4 flex items-center justify-center gap-3 hover:border-white/20 transition">
+        <i data-lucide="bike" class="w-5 h-5 text-emerald-400 shrink-0"></i>
+        <span class="text-xs sm:text-sm font-bold tracking-wide uppercase text-zinc-200">Delivery Express Pichanaki</span>
+      </div>
+      <div class="bg-[#121215] border border-white/[0.07] rounded-2xl p-4 flex items-center justify-center gap-3 hover:border-white/20 transition">
+        <i data-lucide="qr-code" class="w-5 h-5 text-purple-400 shrink-0"></i>
+        <span class="text-xs sm:text-sm font-bold tracking-wide uppercase text-zinc-200">Pago QR con Yape y Plin</span>
+      </div>
+    </section>
+
+    <!-- 3. SECCIÓN BENTO GRID ASIMÉTRICO: LO MÁS PEDIDO -->
+    <section id="populares" class="space-y-6">
+      <div class="flex items-end justify-between">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-brand-pink">Favoritos en Pichanaki</span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold font-display tracking-tight mt-1">LO MÁS PEDIDO EN ENAMÓRATE</h2>
+        </div>
+        <a href="#catalogo-completo" class="text-xs sm:text-sm font-semibold text-zinc-400 hover:text-white flex items-center gap-1">
+          Ver toda la carta <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <!-- Tarjeta Grande Izquierda (Collage 2x2) -->
+        <div class="lg:col-span-5 bg-[#121215] border border-white/[0.08] rounded-[26px] p-4 flex flex-col justify-between group hover:border-white/20 transition">
+          <div class="grid grid-cols-2 gap-3 h-[350px] sm:h-[440px]">
+            <div onclick="openCustomizer(1)" class="rounded-2xl overflow-hidden relative cursor-pointer">
+              <img src="https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=600&q=80" alt="Frappuccino" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+              <span class="absolute top-2.5 left-2.5 bg-black/75 backdrop-blur-md text-[11px] font-bold px-2.5 py-1 rounded-full text-amber-400">Top #1 Ventas</span>
+            </div>
+            <div onclick="openCustomizer(2)" class="rounded-2xl overflow-hidden relative cursor-pointer">
+              <img src="https://images.unsplash.com/photo-1562376552-0d160a2f238d?auto=format&fit=crop&w=600&q=80" alt="Waffles" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+              <span class="absolute top-2.5 left-2.5 bg-black/75 backdrop-blur-md text-[11px] font-bold px-2.5 py-1 rounded-full text-white">Waffles Belgas</span>
+            </div>
+            <div onclick="openCustomizer(3)" class="rounded-2xl overflow-hidden relative cursor-pointer">
+              <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80" alt="Latte Art" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+              <span class="absolute bottom-2.5 left-2.5 bg-black/75 backdrop-blur-md text-[11px] font-bold px-2.5 py-1 rounded-full text-amber-300">85 Pts SCA</span>
+            </div>
+            <div onclick="openCustomizer(8)" class="rounded-2xl overflow-hidden relative cursor-pointer">
+              <img src="https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=600&q=80" alt="Mocktails" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+              <span class="absolute bottom-2.5 right-2.5 bg-brand-pink text-white text-[11px] font-bold px-2.5 py-1 rounded-full">Nuevo</span>
+            </div>
+          </div>
+
+          <div class="pt-5 pb-2 px-2 flex items-center justify-between gap-4">
+            <div>
+              <h3 class="text-lg sm:text-xl font-extrabold font-display tracking-wide uppercase">EXPERIENCIA CAFÉ ENAMÓRATE</h3>
+              <p class="text-xs sm:text-sm text-zinc-400 mt-1">Personaliza tu bebida con leche de almendras, shots extra de espresso de Pichanaki o helado artesanal.</p>
+            </div>
+            <button onclick="openCustomizer(1)" class="w-11 h-11 rounded-full bg-white text-black flex items-center justify-center shrink-0 hover:bg-brand-pink hover:text-white transition" title="Personalizar bebida">
+              <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Cuadrícula 2x2 Derecha -->
+        <div id="bentoProductsGrid" class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <!-- Renderizado por app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. CUADRÍCULA DE 12 CATEGORÍAS -->
+    <section id="categorias" class="space-y-6 pt-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl sm:text-4xl font-extrabold font-display tracking-tight uppercase">NUESTRAS CATEGORÍAS</h2>
+        <button onclick="filterCategory('Todos')" class="text-xs font-bold bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full transition">
+          Ver todas las categorías
+        </button>
+      </div>
+
+      <div id="categoriesGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+        <!-- Renderizado por app.js -->
+      </div>
+    </section>
+
+    <!-- 5. CATÁLOGO INTERACTIVO CON FILTROS Y ORDENAMIENTO -->
+    <section id="catalogo-completo" class="space-y-6 pt-2">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/10 pb-4">
+        <div>
+          <h3 id="activeCategoryTitle" class="text-xl sm:text-2xl font-extrabold font-display">CARTA COMPLETA • CAFÉ ENAMÓRATE</h3>
+          <p class="text-xs text-zinc-400">Haz clic en <strong>Personalizar / +</strong> para elegir adicionales o agregar directo a tu pedido</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <select id="sortSelect" onchange="handleSortChange()" class="bg-[#121215] border border-white/15 rounded-full px-3.5 py-1.5 text-xs font-bold text-zinc-200 focus:outline-none focus:border-brand-pink">
+            <option value="featured">Ordenar: Destacados</option>
+            <option value="price-asc">Precio: Menor a Mayor</option>
+            <option value="price-desc">Precio: Mayor a Menor</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Píldoras de Categorías -->
+      <div id="categoryPills" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1"></div>
+
+      <!-- Grilla de Productos -->
+      <div id="fullCatalogGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"></div>
+    </section>
+
+    <!-- 6. BANNER DIVIDIDO DE RESERVAS Y EXPERIENCIA -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-4">
+      <div class="lg:col-span-4 bg-[#121215] border border-white/[0.08] rounded-[26px] overflow-hidden relative min-h-[290px] flex flex-col justify-end p-6 group">
+        <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80" alt="Café de especialidad" class="absolute inset-0 w-full h-full object-cover opacity-55 group-hover:scale-105 transition duration-700" />
+        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
+        <div class="relative z-10 space-y-2">
+          <span class="bg-amber-500 text-black text-[11px] font-extrabold px-2.5 py-1 rounded-full uppercase">Cosecha Local</span>
+          <h3 class="text-xl font-extrabold font-display">TUESTA Y AROMA DE PICHANAKI</h3>
+          <p class="text-xs text-zinc-300">Granos de altura seleccionados a más de 1,400 m.s.n.m. en nuestra Selva Central.</p>
+        </div>
+      </div>
+
+      <div class="lg:col-span-8 bg-[#121215] border border-white/[0.08] rounded-[26px] overflow-hidden relative min-h-[290px] flex items-center p-6 sm:p-10 group">
+        <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1200&q=80" alt="Interior Café Enamórate" class="absolute inset-0 w-full h-full object-cover opacity-45 group-hover:scale-105 transition duration-700" />
+        <div class="absolute inset-0 bg-gradient-to-r from-black/85 via-black/65 to-black/85"></div>
+        
+        <div class="relative z-10 w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div class="max-w-lg space-y-2.5">
+            <span class="text-xs font-bold text-brand-pink uppercase tracking-widest">Reservas VIP & Eventos</span>
+            <h3 class="text-2xl sm:text-3xl font-extrabold font-display leading-tight">
+              ¿CITA ROMÁNTICA, CUMPLEAÑOS O ANIVERSARIO EN PICHANAKI?
+            </h3>
+            <p class="text-xs sm:text-sm text-zinc-300">
+              Reserva tu mesa sin costo adicional desde nuestra Web App y elige si deseas decoración especial o postre con vela.
+            </p>
+          </div>
+
+          <button onclick="toggleReservationModal()" class="px-6 py-4 rounded-full bg-white text-black hover:bg-brand-pink hover:text-white font-extrabold text-xs sm:text-sm flex items-center gap-2 shrink-0 transition shadow-xl">
+            <i data-lucide="calendar-check" class="w-4 h-4"></i>
+            <span>Reservar Mesa Ahora</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. SECCIÓN DE RESEÑAS / TESTIMONIOS -->
+    <section id="resenas" class="space-y-6 pt-4">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h2 class="text-2xl sm:text-4xl font-extrabold font-display uppercase">TU OPINIÓN NOS ENAMORA</h2>
+          <div class="flex items-center gap-3 mt-2">
+            <div class="flex items-center text-brand-pink">
+              <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+            </div>
+            <span class="text-sm font-bold text-white">4.9 / 5.0</span>
+            <span class="text-xs text-zinc-400">• +240 clientes felices en Pichanaki</span>
+          </div>
+        </div>
+
+        <button onclick="toggleReservationModal()" class="inline-flex items-center gap-2 bg-white text-black hover:bg-zinc-200 text-xs font-extrabold px-5 py-2.5 rounded-full transition w-fit">
+          <span>Visítanos hoy</span>
+          <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-[#121215] border border-white/[0.08] rounded-2xl p-5 flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-sm text-white">Camila Villanueva</span>
+              <span class="text-[11px] text-emerald-400 font-semibold">Compra verificada</span>
+            </div>
+            <p class="text-xs text-zinc-300 leading-relaxed">"El Frappuccino de Oreo con shot extra de café de Pichanaki es una joya. Me encanta poder personalizar los toppings desde la web."</p>
+          </div>
+          <div class="flex items-center text-brand-pink gap-0.5">
+            <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+          </div>
+        </div>
+
+        <div class="bg-[#121215] border border-white/[0.08] rounded-2xl p-5 flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-sm text-white">Rodrigo Paredes</span>
+              <span class="text-[11px] text-emerald-400 font-semibold">Local Guide</span>
+            </div>
+            <p class="text-xs text-zinc-300 leading-relaxed">"Reservé una mesa para el cumpleaños de mi enamorada desde la página y cuando llegamos todo estaba listo con su waffle y vela."</p>
+          </div>
+          <div class="flex items-center text-brand-pink gap-0.5">
+            <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+          </div>
+        </div>
+
+        <div class="bg-[#121215] border border-white/[0.08] rounded-2xl p-5 flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-sm text-white">Fiorella Gutiérrez</span>
+              <span class="text-[11px] text-emerald-400 font-semibold">Pedido Delivery</span>
+            </div>
+            <p class="text-xs text-zinc-300 leading-relaxed">"Súper práctico pagar con el QR de Yape directo en el carrito y enviar el pedido armado al WhatsApp. Llegó calientito en 20 minutos."</p>
+          </div>
+          <div class="flex items-center text-brand-pink gap-0.5">
+            <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+          </div>
+        </div>
+
+        <div class="bg-[#121215] border border-white/[0.08] rounded-2xl p-5 flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-sm text-white">Diego Huamán</span>
+              <span class="text-[11px] text-emerald-400 font-semibold">Cliente Frecuente</span>
+            </div>
+            <p class="text-xs text-zinc-300 leading-relaxed">"Las alitas BBQ al café y el cheesecake de maracuyá son brutales. El mejor ambiente de toda la Selva Central para trabajar o salir."</p>
+          </div>
+          <div class="flex items-center text-brand-pink gap-0.5">
+            <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. SECCIÓN FAQ CON PESTAÑAS INTERACTIVAS -->
+    <section id="faq" class="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-6">
+      <div class="lg:col-span-5 space-y-3">
+        <h2 class="text-4xl sm:text-5xl font-extrabold font-display tracking-tight">FAQ</h2>
+        <p class="text-xs sm:text-sm text-zinc-400 max-w-sm">
+          Selecciona una categoría para resolver tus dudas sobre envíos en Pichanaki, pagos por Yape/Plin, reservas y café de especialidad.
+        </p>
+      </div>
+
+      <div class="lg:col-span-7 space-y-5">
+        <div id="faqTabs" class="flex flex-wrap gap-2"></div>
+        <div id="faqContainer" class="divide-y divide-white/10 border-t border-b border-white/10"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= FOOTER COMPLETO ================= -->
+  <footer class="mt-20 border-t border-white/10 bg-[#060608] py-12">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-xs text-zinc-400">
+      <div class="space-y-3">
+        <div class="flex items-center gap-2 text-base font-extrabold text-white">
+          <span class="font-display">CAFÉ</span>
+          <span class="bg-brand-pink text-white px-1.5 py-0.5 rounded text-xs">♥</span>
+          <span class="font-display">ENAMÓRATE</span>
+        </div>
+        <p class="leading-relaxed">
+          Cafetería de especialidad, repostería artesanal y restobar en el corazón de Pichanaki, Chanchamayo.
+        </p>
+        <p class="text-zinc-500">© 2026 Café Enamórate Pichanaki. Desarrollado con arquitectura Web App.</p>
+      </div>
+
+      <div class="space-y-2.5">
+        <h4 class="text-white font-bold uppercase tracking-wider">Favoritos de la Carta</h4>
+        <ul class="space-y-1.5">
+          <li><a href="#catalogo-completo" onclick="filterCategory('Frappuccinos')" class="hover:text-white">Frappuccinos & Helados</a></li>
+          <li><a href="#catalogo-completo" onclick="filterCategory('Cafés Calientes')" class="hover:text-white">Espresso & Cafés de Altura</a></li>
+          <li><a href="#catalogo-completo" onclick="filterCategory('Waffles & Postres')" class="hover:text-white">Waffles Belgas & Postres</a></li>
+          <li><a href="#catalogo-completo" onclick="filterCategory('Sánguches & Salados')" class="hover:text-white">Club Sandwich & Alitas</a></li>
+        </ul>
+      </div>
+
+      <div class="space-y-2.5">
+        <h4 class="text-white font-bold uppercase tracking-wider">Ubicación y Horario</h4>
+        <p>📍 Centro de Pichanaki, Chanchamayo - Junín</p>
+        <p>🕒 Lunes a Domingo: 8:00 AM – 11:00 PM</p>
+        <p>🛵 Delivery rápido en Pichanaki, Sangani y Santa Rosa</p>
+      </div>
+
+      <div class="space-y-2.5">
+        <h4 class="text-white font-bold uppercase tracking-wider">Atención al Cliente</h4>
+        <p>📱 WhatsApp Pedidos: +51 964 521 890</p>
+        <p>💳 Aceptamos Yape, Plin, Tarjetas POS y Efectivo</p>
+        <button onclick="toggleReservationModal()" class="mt-2 bg-white/10 hover:bg-brand-pink text-white font-bold px-4 py-2 rounded-full transition">
+          Reservar Mesa VIP
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= DOCK FLOTANTE INFERIOR ================= -->
+  <div class="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 sm:gap-2 bg-[#18181c]/95 backdrop-blur-xl border border-white/15 px-3 py-2 rounded-full shadow-2xl">
+    <a href="#categorias" class="flex items-center gap-1.5 bg-brand-pink hover:bg-rose-600 text-white text-xs font-extrabold px-4 py-2 rounded-full transition shadow-md">
+      <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+      <span>Menú</span>
+    </a>
+    <a href="#populares" class="text-xs font-semibold text-zinc-300 hover:text-white px-3 py-1.5 rounded-full hover:bg-white/5 transition hidden sm:inline-block">
+      Populares
+    </a>
+    <button onclick="toggleReservationModal()" class="text-xs font-semibold text-amber-400 hover:text-white px-3 py-1.5 rounded-full hover:bg-white/5 transition">
+      Reservar
+    </button>
+    <a href="#faq" class="text-xs font-semibold text-zinc-300 hover:text-white px-3 py-1.5 rounded-full hover:bg-white/5 transition hidden sm:inline-block">
+      FAQ
+    </a>
+    <button onclick="toggleCart()" class="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3.5 py-2 rounded-full transition">
+      <i data-lucide="shopping-cart" class="w-3.5 h-3.5 text-amber-400"></i>
+      <span id="dockCartCount">0</span>
+    </button>
+  </div>
+
+  <!-- ================= MODAL 1: PERSONALIZADOR DE PRODUCTO (BARISTA CUSTOMIZER) ================= -->
+  <div id="customizerModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div onclick="closeCustomizer()" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+    <div id="customizerContent" class="relative z-10 w-full max-w-lg bg-[#121215] border border-white/15 rounded-[28px] overflow-hidden shadow-2xl animate-slide-up max-h-[90vh] flex flex-col">
+      <!-- Renderizado dinámico por app.js -->
+    </div>
+  </div>
+
+  <!-- ================= MODAL 2: RESERVA DE MESAS VIP & CUMPLEAÑOS ================= -->
+  <div id="reservationModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div onclick="toggleReservationModal()" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+    <div class="relative z-10 w-full max-w-md bg-[#121215] border border-white/15 rounded-[28px] p-6 space-y-4 shadow-2xl animate-slide-up">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="calendar-heart" class="w-5 h-5 text-brand-pink"></i>
+          <h3 class="text-lg font-extrabold font-display">RESERVAR MESA EN ENAMÓRATE</h3>
+        </div>
+        <button onclick="toggleReservationModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-zinc-400">Asegura tu mesa en Pichanaki para citas, cumpleaños o reuniones de amigos.</p>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="text-zinc-300 font-bold block mb-1">Nombre completo</label>
+          <input id="resName" type="text" placeholder="Ej. Derlym Poma" class="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-brand-pink" />
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-zinc-300 font-bold block mb-1">Fecha</label>
+            <input id="resDate" type="date" class="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-brand-pink" />
+          </div>
+          <div>
+            <label class="text-zinc-300 font-bold block mb-1">Hora</label>
+            <input id="resTime" type="time" value="19:30" class="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-brand-pink" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-zinc-300 font-bold block mb-1">N° de Personas</label>
+            <select id="resGuests" class="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-brand-pink">
+              <option value="2 personas (Cita)">2 personas (Cita)</option>
+              <option value="3 a 4 personas">3 a 4 personas</option>
+              <option value="5 a 8 personas (Grupo)">5 a 8 personas (Grupo)</option>
+              <option value="+8 personas (Celebración)">+8 personas (Evento)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-zinc-300 font-bold block mb-1">Zona Preferida</label>
+            <select id="resZone" class="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-brand-pink">
+              <option value="Salón Climatizado">Salón Climatizado</option>
+              <option value="Mesa Romántica VIP">Mesa Romántica VIP</option>
+              <option value="Terraza Fresca">Terraza Fresca</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="text-zinc-300 font-bold block mb-1">Motivo o pedido especial (Opcional)</label>
+          <input id="resNotes" type="text" placeholder="Ej. Cumpleaños con postre y vela, aniversario..." class="w-full bg-black/50 border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-brand-pink" />
+        </div>
+      </div>
+
+      <button onclick="sendReservationWhatsApp()" class="w-full bg-gradient-to-r from-brand-pink to-amber-500 hover:opacity-95 text-white font-extrabold py-3.5 rounded-full text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-brand-pink/30 transition">
+        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+        <span>Confirmar Reserva por WhatsApp</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= DRAWER LATERAL DEL CARRITO + YAPE QR + CUPONES ================= -->
+  <div id="cartModal" class="fixed inset-0 z-50 hidden">
+    <div onclick="toggleCart()" class="absolute inset-0 bg-black/75 backdrop-blur-sm"></div>
+    
+    <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-[#121215] border-l border-white/10 p-5 flex flex-col justify-between z-10 overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shopping-bag" class="w-5 h-5 text-brand-pink"></i>
+          <h3 class="text-base sm:text-lg font-extrabold font-display">TU PEDIDO • ENAMÓRATE</h3>
+        </div>
+        <button onclick="toggleCart()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Lista de items -->
+      <div id="cartItemsContainer" class="flex-1 overflow-y-auto py-3 space-y-2.5 min-h-[160px] max-h-[270px]"></div>
+
+      <!-- Cupón de Descuento + Checkout + Yape QR -->
+      <div class="border-t border-white/10 pt-3 space-y-3 text-xs">
+        
+        <!-- Cupón -->
+        <div class="flex gap-2">
+          <input id="couponInput" type="text" placeholder="Código promo (Ej: ENAMORATE10)" class="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-white uppercase focus:outline-none focus:border-brand-pink" />
+          <button onclick="applyCoupon()" class="bg-white/10 hover:bg-white/20 text-white font-bold px-3.5 py-2 rounded-xl transition">
+            Aplicar
+          </button>
+        </div>
+
+        <!-- Datos del cliente y zona de entrega -->
+        <div class="grid grid-cols-2 gap-2">
+          <input id="customerName" type="text" placeholder="Tu nombre" class="bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-brand-pink" />
+          <select id="orderType" onchange="updateCartUI()" class="bg-black/50 border border-white/10 rounded-xl px-2.5 py-2 text-white focus:outline-none focus:border-brand-pink">
+            <option value="salon" data-fee="0">☕ Consumo en Salón (S/ 0)</option>
+            <option value="recojo" data-fee="0">🏪 Recoger en Local (S/ 0)</option>
+            <option value="centro" data-fee="3">🛵 Delivery Pichanaki Centro (+S/ 3)</option>
+            <option value="alrededores" data-fee="5">🛵 Delivery Sangani / Sta. Rosa (+S/ 5)</option>
+          </select>
+        </div>
+
+        <input id="customerAddress" type="text" placeholder="Dirección exacta en Pichanaki o N° de Mesa" class="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-brand-pink" />
+
+        <!-- Selector de Método de Pago (Muestra QR si elige Yape/Plin) -->
+        <div>
+          <label class="text-zinc-400 font-semibold block mb-1.5">Método de Pago:</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" onclick="selectPaymentMethod('Yape / Plin')" id="payBtnYape" class="py-2 px-2 rounded-xl border border-brand-pink bg-brand-pink/15 text-white font-bold flex items-center justify-center gap-1">
+              <i data-lucide="qr-code" class="w-3.5 h-3.5 text-amber-400"></i> Yape / Plin
+            </button>
+            <button type="button" onclick="selectPaymentMethod('Tarjeta POS')" id="payBtnCard" class="py-2 px-2 rounded-xl border border-white/10 bg-black/40 text-zinc-300 font-bold flex items-center justify-center gap-1">
+              <i data-lucide="credit-card" class="w-3.5 h-3.5"></i> Tarjeta
+            </button>
+            <button type="button" onclick="selectPaymentMethod('Efectivo')" id="payBtnCash" class="py-2 px-2 rounded-xl border border-white/10 bg-black/40 text-zinc-300 font-bold flex items-center justify-center gap-1">
+              <i data-lucide="banknote" class="w-3.5 h-3.5"></i> Efectivo
+            </button>
+          </div>
+        </div>
+
+        <!-- Caja Interactiva QR Yape / Plin -->
+        <div id="yapeQrBox" class="bg-gradient-to-br from-purple-950/60 to-black border border-purple-500/30 rounded-2xl p-3 flex items-center gap-3">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=Yape-CafeEnamoratePichanaki-964521890" alt="QR Yape" class="w-16 h-16 rounded-lg bg-white p-1 shrink-0" />
+          <div class="space-y-1 flex-1">
+            <div class="flex items-center justify-between">
+              <span class="font-extrabold text-purple-300 uppercase text-[10px]">Yape / Plin Oficial</span>
+              <button onclick="copyYapeNumber()" class="text-[10px] bg-purple-600 hover:bg-purple-500 text-white font-bold px-2 py-0.5 rounded-full transition">Copiar N°</button>
+            </div>
+            <p class="text-white font-extrabold text-sm">964 521 890</p>
+            <p class="text-[10px] text-zinc-400">Titular: Café Enamórate Pichanaki (Envía tu captura al WhatsApp)</p>
+          </div>
+        </div>
+
+        <!-- Desglose de Costos -->
+        <div class="bg-black/40 rounded-2xl p-3 space-y-1 border border-white/[0.06]">
+          <div class="flex justify-between text-zinc-400">
+            <span>Subtotal productos:</span>
+            <span id="summarySubtotal">S/ 0.00</span>
+          </div>
+          <div class="flex justify-between text-emerald-400" id="summaryDiscountRow" style="display:none;">
+            <span>Descuento (ENAMORATE10):</span>
+            <span id="summaryDiscount">- S/ 0.00</span>
+          </div>
+          <div class="flex justify-between text-zinc-400">
+            <span>Costo de envío:</span>
+            <span id="summaryDelivery">S/ 0.00</span>
+          </div>
+          <div class="flex justify-between text-sm font-extrabold text-white pt-1 border-t border-white/10">
+            <span>Total a Pagar:</span>
+            <span id="drawerCartTotal" class="text-lg text-amber-400">S/ 0.00</span>
+          </div>
+        </div>
+
+        <button onclick="sendOrderWhatsApp()" class="w-full bg-gradient-to-r from-brand-pink to-orange-500 hover:opacity-95 text-white font-extrabold py-3.5 rounded-full text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-brand-pink/30 transition">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span>Enviar Pedido Detallado por WhatsApp</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
